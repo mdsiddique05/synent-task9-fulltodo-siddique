@@ -77,7 +77,7 @@ def add_task():
     title = request.form.get('title')
     desc = request.form.get('description')
 
-    my_task = Task(title={title},description = {desc}, user_id = current_user_id)
+    my_task = Task(title=title,description = {desc}, user_id = current_user_id)
 
     db.session.add(my_task)
 
