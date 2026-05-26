@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Your Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+</head>
+<body>
+    <nav class="container">
+        <ul>
+            <li><strong>Task Manager Pro</strong></li>
+        </ul>
+        <ul>
+            <li><a href="/logout" role="button" class="secondary outline">Logout</a></li>
+        </ul>
+    </nav>
+
+    <main class="container">
+        <!-- <article> -->
+            <header><h3> Add a New Task</h3></header>
+            <form action="/add" method="POST">
+                <div class="grid">
+                    <input type="text" name="title" placeholder="Task Title" required>
+                    <input type="text" name="description" placeholder="Task Description (Optional)">
+                </div>
+                <button type="submit">Save Task</button>
+            </form>
+        <!-- </article> -->
+
+        <hr>
+
+        <h2>Your Tasks</h2>
+        
+        {% for task in tasks %}
+            <article>
+                <header>
+                    <strong>{{ task.title }}</strong> 
+                    <span style="float: right;">
+                        {% if task.is_complete %} ✔️Done {% else %} ❌ Pending {% endif %}
+                    </span>
+                </header>
+                <p>{{ task.description }}</p>
+                
+                <footer class="grid">
+                    {% if not task.is_complete %}
+                        <a href="/complete/{{ task.id }}" role="button" class="outline">Mark Complete</a>
+                    {% endif %}
+                    <a href="/delete/{{ task.id }}" role="button" class="secondary outline">Delete Task</a>
+                </footer>
+            </article>
+        {% endfor %}
+        
+    </main>
+</body>
+</html>

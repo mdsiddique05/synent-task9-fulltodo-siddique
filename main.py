@@ -1,4 +1,4 @@
-from flask import Flask,session,render_template,request
+from flask import Flask,session,render_template,request,redirect,url_for
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
@@ -45,25 +45,27 @@ def register(username,password):
 @app.route('/login',methods =['GET','POST'])
 def login():
 
-    if request.method == 'Post':
+    if request.method == 'POST':
 
         form_username = request.form['username']
         form_password = request.form['password']
 
-        user = User.query.filer_by(username = form_username).first()
+        user = User.query.filter_by(username = form_username).first()
 
         if not user:
             return "error: user not found login first"
     
         if check_password_hash(user.password,form_password):
             session['user_id'] = user.id
-            return f"welcome back {user.username}"
+
+            return redirect(url_for('view_tasks'))
         else:
             return "incorrect password!"
         
+        
     return render_template('login.html')
 
-@app.route('/add')
+@app.route('/add',methods = ['GET','POST'])
 def add_task():
     
     if 'user_id' not in session:
@@ -72,16 +74,19 @@ def add_task():
     current_user_id = session['user_id']
     user = User.query.get(current_user_id)
 
-    my_task = Task(title="hello", description="first row", user_id= current_user_id)
-    my_task2 = Task(title="my", description="second row",user_id =  current_user_id)
-    my_task3 = Task(title="people", description="third row", user_id= current_user_id)
+    title = request.form.get('title')
+    desc = request.form.get('description')
+
+    my_task = Task(title={title},description = {desc}, user_id = current_user_id)
 
     db.session.add(my_task)
-    db.session.add(my_task2)
-    db.session.add(my_task3)
+
+    # db.session.add(my_task)
+    # db.session.add(my_task2)
+    # db.session.add(my_task3)
     db.session.commit()
 
-    return f"Tasks successfully created and assigned to {user.username}!"
+    return redirect(url_for('view_tasks'))
 
 @app.route('/delete/<int:id>')
 def delete(id):
@@ -93,7 +98,7 @@ def delete(id):
     db.session.delete(task)
     db.session.commit()
 
-    return f"{id} deleted"
+    return redirect(url_for('view_tasks'))
 
 @app.route('/complete/<int:id>')
 def update(id):
@@ -103,7 +108,7 @@ def update(id):
 
     db.session.commit()
 
-    return f"task {id} has been marked completed"
+    return redirect(url_for('view_tasks'))
 
 
 
@@ -127,19 +132,21 @@ def view_tasks():
             "description": task.description,
             "is_complete": task.is_complete
         })
-    return {"tasks": tasks_list}
+    
+    return render_template('dashboard.html',tasks= tasks_list)
+   
 
 
 @app.route('/logout')
 def logout():
     session.pop('user_id',None)
-    return "you have been logged out"
+    return redirect(url_for('login'))
 
     
 
 
 if __name__ == '__main__':
-    # This command reads your classes and actually builds the tables in MySQL!
+
     with app.app_context():
         db.create_all() 
     
